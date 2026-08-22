@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -18,9 +19,11 @@ public partial class MainWindow : Window
     private static readonly string YtDlpPath = Path.Combine(AppContext.BaseDirectory, "Tools", "yt-dlp.exe");
 
     private CancellationTokenSource? _cts;
-    private string? _tempFile;
+    private string? _tempBase;
     private string? _lastOutput;
     private bool _busy;
+
+    private bool IsMp4 => Mp4Radio.IsChecked == true;
 
     public MainWindow()
     {
@@ -58,6 +61,16 @@ public partial class MainWindow : Window
         if (e.Key == Key.Enter && !_busy)
             Convert_Click(sender, new RoutedEventArgs());
     }
+
+    private void Format_Changed(object sender, RoutedEventArgs e)
+    {
+        // Fires during InitializeComponent before ConvertButton exists.
+        if (ConvertButton is null || _busy) return;
+        UpdateConvertButtonText();
+    }
+
+    private void UpdateConvertButtonText() =>
+        ConvertButton.Content = IsMp4 ? "Download as MP4" : "Convert to MP3";
 
     private void Window_DragOver(object sender, DragEventArgs e)
     {
@@ -115,8 +128,8 @@ public partial class MainWindow : Window
 
             var dialog = new SaveFileDialog
             {
-                Title = "Save MP3",
-                Filter = "MP3 audio|*.mp3",
+                Title = IsMp4 ? "Save MP4" : "Save MP3",
+                Filter = IsMp4 ? "MP4 video|*.mp4" : "MP3 audio|*.mp3",
                 FileName = SanitizeFileName(info.Title),
                 OverwritePrompt = true,
                 AddExtension = true
@@ -127,22 +140,32 @@ public partial class MainWindow : Window
                 return;
             }
 
-            SetPhase("Downloading audio...");
-            SetStatus($"Downloading best audio track ({info.Uploader})...", StatusKind.Info);
-
-            var sourceFile = await DownloadBestAudioAsync(url, _cts.Token);
-
-            SetPhase("Encoding MP3 @ 192 kbps...");
-            SetStatus("Encoding MP3...", StatusKind.Info);
-            DownloadBar.IsIndeterminate = true;
-            await Task.Run(() =>
+            if (IsMp4)
             {
-                using var reader = new MediaFoundationReader(sourceFile);
-                MediaFoundationEncoder.EncodeToMp3(reader, dialog.FileName, BitrateKbps * 1000);
-            });
-            DownloadBar.IsIndeterminate = false;
-            DownloadBar.Value = 100;
-            PercentText.Text = "100%";
+                SetPhase("Downloading video...");
+                SetStatus($"Downloading best quality video ({info.Uploader})...", StatusKind.Info);
+
+                await DownloadMp4Async(url, dialog.FileName, _cts.Token);
+            }
+            else
+            {
+                SetPhase("Downloading audio...");
+                SetStatus($"Downloading best audio track ({info.Uploader})...", StatusKind.Info);
+
+                var sourceFile = await DownloadBestAudioAsync(url, _cts.Token);
+
+                SetPhase("Encoding MP3 @ 192 kbps...");
+                SetStatus("Encoding MP3...", StatusKind.Info);
+                DownloadBar.IsIndeterminate = true;
+                await Task.Run(() =>
+                {
+                    using var reader = new MediaFoundationReader(sourceFile);
+                    MediaFoundationEncoder.EncodeToMp3(reader, dialog.FileName, BitrateKbps * 1000);
+                });
+                DownloadBar.IsIndeterminate = false;
+                DownloadBar.Value = 100;
+                PercentText.Text = "100%";
+            }
 
             _lastOutput = dialog.FileName;
             SetStatus($"Done! Saved to {dialog.FileName}", StatusKind.Success);
@@ -235,7 +258,7 @@ public partial class MainWindow : Window
     private async Task<string> DownloadBestAudioAsync(string url, CancellationToken ct)
     {
         var basePath = Path.Combine(Path.GetTempPath(), $"ytmp3_{Guid.NewGuid():N}");
-        _tempFile = basePath + ".part";
+        _tempBase = basePath;
 
         var args =
             $"-f bestaudio/best -N 4 --no-playlist --newline " +
@@ -253,8 +276,35 @@ public partial class MainWindow : Window
         if (produced is null)
             throw MapYtDlpError(stderr.Length > 0 ? stderr : "Download produced no file.");
 
-        _tempFile = produced;
         return produced;
+    }
+
+    private async Task DownloadMp4Async(string url, string outputPath, CancellationToken ct)
+    {
+        var basePath = Path.Combine(Path.GetTempPath(), $"ytmp4_{Guid.NewGuid():N}");
+        _tempBase = basePath;
+
+        // Prefer h264/aac streams (up to 1080p) so the merge stays a clean mp4;
+        // fall back to any best video+audio pair and let ffmpeg remux it.
+        var args =
+            "-f \"bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best\" " +
+            "--merge-output-format mp4 -N 4 --no-playlist --newline " +
+            $"--ffmpeg-location \"{Path.GetDirectoryName(YtDlpPath)}\" " +
+            $"-o \"{basePath}.%(ext)s\" -- \"{url}\"";
+
+        var (_, _, stderr) = await RunYtDlpAsync(args, ct, OnDownloadLine);
+
+        var dir = Path.GetDirectoryName(basePath)!;
+        var pattern = Path.GetFileName(basePath) + ".*";
+        var produced = Directory.GetFiles(dir, pattern)
+            .Where(f => !f.EndsWith(".part", StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(File.GetLastWriteTimeUtc)
+            .FirstOrDefault();
+
+        if (produced is null)
+            throw MapYtDlpError(stderr.Length > 0 ? stderr : "Download produced no file.");
+
+        File.Move(produced, outputPath, overwrite: true);
     }
 
     private static readonly Regex PercentRegex = new(@"(\d+(?:\.\d+)?)%", RegexOptions.Compiled);
@@ -266,12 +316,14 @@ public partial class MainWindow : Window
         var match = PercentRegex.Match(line);
         if (!match.Success) return;
 
-        if (double.TryParse(match.Groups[1].Value, out var pct))
+        // yt-dlp always prints dot decimals - parse invariantly or "100.0" reads as 1000 on comma-decimal locales.
+        if (double.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var pct))
         {
+            var clamped = Math.Clamp(pct, 0, 100);
             Dispatcher.Invoke(() =>
             {
-                DownloadBar.Value = Math.Clamp(pct, 0, 100);
-                PercentText.Text = $"{pct:0}%";
+                DownloadBar.Value = clamped;
+                PercentText.Text = $"{clamped:0}%";
             });
         }
     }
@@ -420,7 +472,7 @@ public partial class MainWindow : Window
         ConvertButton.IsEnabled = !busy;
         PasteButton.IsEnabled = !busy;
         UrlBox.IsEnabled = !busy;
-        ConvertButton.Content = busy ? "Working..." : "Convert to MP3";
+        ConvertButton.Content = busy ? "Working..." : (IsMp4 ? "Download as MP4" : "Convert to MP3");
         ProgressSection.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
         if (!busy)
         {
@@ -441,7 +493,7 @@ public partial class MainWindow : Window
         {
             StatusKind.Success => new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x4A, 0xDE, 0x80)),
             StatusKind.Error => new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xFF, 0x6B, 0x6B)),
-            _ => new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x66, 0x70, 0x8A))
+            _ => new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x9A, 0x90, 0xB0))
         };
     }
 
@@ -457,8 +509,16 @@ public partial class MainWindow : Window
 
     private void CleanupTemp()
     {
-        if (_tempFile is null || !File.Exists(_tempFile)) return;
-        try { File.Delete(_tempFile); } catch { /* best effort */ }
-        _tempFile = null;
+        if (_tempBase is null) return;
+
+        try
+        {
+            var dir = Path.GetDirectoryName(_tempBase)!;
+            foreach (var f in Directory.GetFiles(dir, Path.GetFileName(_tempBase) + ".*"))
+                File.Delete(f);
+        }
+        catch { /* best effort */ }
+
+        _tempBase = null;
     }
 }

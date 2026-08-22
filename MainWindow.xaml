@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="YouTube to MP3"
+        Title="YouTube to MP3 &amp; MP4"
         Width="520" Height="592"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None" ResizeMode="NoResize"
@@ -17,7 +17,7 @@
         <Style x:Key="ChromeButton" TargetType="Button">
             <Setter Property="Width" Value="42"/>
             <Setter Property="Height" Value="32"/>
-            <Setter Property="Foreground" Value="#8A93A6"/>
+            <Setter Property="Foreground" Value="#9C92B2"/>
             <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
             <Setter Property="FontSize" Value="10"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -29,17 +29,27 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="#1C2330"/>
+                                <Setter TargetName="bg" Property="Background" Value="#1D142E"/>
                                 <Setter Property="Foreground" Value="#FFFFFF"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="#242D3D"/>
+                                <Setter TargetName="bg" Property="Background" Value="#251A3A"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <LinearGradientBrush x:Key="AccentBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#A855F7" Offset="0"/>
+            <GradientStop Color="#7C3AED" Offset="1"/>
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="AccentBarBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#C084FC" Offset="0"/>
+            <GradientStop Color="#7C3AED" Offset="1"/>
+        </LinearGradientBrush>
 
         <Style x:Key="PrimaryButton" TargetType="Button">
             <Setter Property="Height" Value="48"/>
@@ -51,14 +61,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Grid>
-                            <Border x:Name="bg" CornerRadius="12">
-                                <Border.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#FF4657" Offset="0"/>
-                                        <GradientStop Color="#FF7B52" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Border.Background>
-                            </Border>
+                            <Border x:Name="bg" CornerRadius="12" Background="{StaticResource AccentBrush}"/>
                             <Border x:Name="hover" CornerRadius="12" Background="#FFFFFF" Opacity="0"/>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Grid>
@@ -67,7 +70,7 @@
                                 <Setter TargetName="hover" Property="Opacity" Value="0.09"/>
                                 <Setter TargetName="bg" Property="Effect">
                                     <Setter.Value>
-                                        <DropShadowEffect BlurRadius="24" ShadowDepth="0" Color="#FF4657" Opacity="0.45"/>
+                                        <DropShadowEffect BlurRadius="24" ShadowDepth="0" Color="#8B5CF6" Opacity="0.5"/>
                                     </Setter.Value>
                                 </Setter>
                             </Trigger>
@@ -86,21 +89,21 @@
         <Style x:Key="GhostButton" TargetType="Button">
             <Setter Property="Height" Value="38"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="#C7CEDB"/>
+            <Setter Property="Foreground" Value="#CDC4DE"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="bg" CornerRadius="10" Background="#141A25" BorderBrush="#262F3F" BorderThickness="1">
+                        <Border x:Name="bg" CornerRadius="10" Background="#130D20" BorderBrush="#2A2040" BorderThickness="1">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="#1B2331"/>
-                                <Setter TargetName="bg" Property="BorderBrush" Value="#37455E"/>
+                                <Setter TargetName="bg" Property="Background" Value="#1E1530"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="#3D2E5E"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="#10151F"/>
+                                <Setter TargetName="bg" Property="Background" Value="#0E0918"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="bg" Property="Opacity" Value="0.45"/>
@@ -112,7 +115,7 @@
         </Style>
 
         <Style x:Key="LinkButton" TargetType="Button">
-            <Setter Property="Foreground" Value="#FF6B6B"/>
+            <Setter Property="Foreground" Value="#B989F5"/>
             <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
@@ -121,8 +124,39 @@
                         <TextBlock x:Name="txt" Text="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}"/>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="txt" Property="Foreground" Value="#FF9C9C"/>
+                                <Setter TargetName="txt" Property="Foreground" Value="#D4BFFF"/>
                             </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FormatRadio" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#9A90B0"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bg" CornerRadius="7" Background="Transparent" Padding="14,7">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsChecked" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="bg" Property="Background" Value="#1E1530"/>
+                                <Setter Property="Foreground" Value="#CDC4DE"/>
+                            </MultiTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -131,30 +165,24 @@
 
         <Style x:Key="FlatTextBox" TargetType="TextBox">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#EEF1F6"/>
+            <Setter Property="Foreground" Value="#EFEBF6"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="FontSize" Value="14"/>
-            <Setter Property="CaretBrush" Value="#FF7B52"/>
+            <Setter Property="CaretBrush" Value="#A855F7"/>
         </Style>
 
         <ControlTemplate x:Key="SlickProgressBar" TargetType="ProgressBar">
             <Grid>
-                <Border x:Name="PART_Track" Background="#1A212E" CornerRadius="4"/>
-                <Border x:Name="PART_Indicator" HorizontalAlignment="Left" CornerRadius="4">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="#FF4657" Offset="0"/>
-                            <GradientStop Color="#FF7B52" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Border.Background>
-                </Border>
+                <Border x:Name="PART_Track" Background="#191226" CornerRadius="4"/>
+                <Border x:Name="PART_Indicator" HorizontalAlignment="Left" CornerRadius="4"
+                        Background="{StaticResource AccentBarBrush}"/>
             </Grid>
         </ControlTemplate>
 
     </Window.Resources>
 
-    <Border CornerRadius="14" Background="#0B0E14" BorderBrush="#1D2532" BorderThickness="1"
+    <Border CornerRadius="14" Background="#07050C" BorderBrush="#231A38" BorderThickness="1"
             MouseLeftButtonDown="Chrome_MouseLeftButtonDown">
         <Grid>
             <Grid.RowDefinitions>
@@ -166,18 +194,12 @@
             <!-- Title bar -->
             <Grid Grid.Row="0" Height="46" Margin="14,10,10,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border Width="22" Height="22" CornerRadius="6">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#FF4657" Offset="0"/>
-                                <GradientStop Color="#FF7B52" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
+                    <Border Width="22" Height="22" CornerRadius="6" Background="{StaticResource AccentBrush}">
                         <TextBlock Text="&#xE102;" FontFamily="Segoe MDL2 Assets" FontSize="9" Foreground="White"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
-                    <TextBlock Text="YouTube to MP3" Margin="9,0,0,0" VerticalAlignment="Center"
-                               FontSize="12" FontWeight="SemiBold" Foreground="#98A2B5"/>
+                    <TextBlock Text="YouTube to MP3 &#183; MP4" Margin="9,0,0,0" VerticalAlignment="Center"
+                               FontSize="12" FontWeight="SemiBold" Foreground="#9C92B2"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Style="{StaticResource ChromeButton}" Content="&#xE921;" Click="Minimize_Click"/>
@@ -188,14 +210,14 @@
             <!-- Main content -->
             <StackPanel Grid.Row="1" Margin="34,14,34,0">
 
-                <TextBlock Text="Grab the audio."
-                           FontSize="26" FontWeight="SemiBold" Foreground="#F2F4F8"/>
-                <TextBlock Text="Paste a YouTube link and save it as a crisp 192 kbps MP3."
-                           FontSize="12.5" Foreground="#8A93A6" Margin="0,6,0,0"/>
+                <TextBlock Text="Grab the audio - or the video."
+                           FontSize="24" FontWeight="SemiBold" Foreground="#EFEAF8"/>
+                <TextBlock Text="Paste a YouTube link, pick a format, save it locally."
+                           FontSize="12.5" Foreground="#9A90B0" Margin="0,6,0,0"/>
 
                 <!-- URL input -->
-                <Border Margin="0,20,0,0" Padding="14,0,8,0" CornerRadius="12"
-                        Background="#131926" BorderBrush="#262F3F" BorderThickness="1">
+                <Border Margin="0,18,0,0" Padding="14,0,8,0" CornerRadius="12"
+                        Background="#110C1D" BorderBrush="#2A2040" BorderThickness="1">
                     <Grid Height="44">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -203,7 +225,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBox x:Name="UrlBox" Grid.Column="0" Style="{StaticResource FlatTextBox}"
                                  KeyDown="UrlBox_KeyDown"/>
-                        <TextBlock Text="https://www.youtube.com/watch?v=..." FontSize="13.5" Foreground="#4E5A70"
+                        <TextBlock Text="https://www.youtube.com/watch?v=..." FontSize="13.5" Foreground="#4A4066"
                                    IsHitTestVisible="False" VerticalAlignment="Center" Margin="1,0,0,0">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
@@ -221,9 +243,24 @@
                     </Grid>
                 </Border>
 
+                <!-- Format picker -->
+                <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                    <TextBlock Text="FORMAT" VerticalAlignment="Center" FontSize="11" FontWeight="SemiBold"
+                               Foreground="#6E6488"/>
+                    <Border Margin="12,0,0,0" CornerRadius="10" Background="#110C1D"
+                            BorderBrush="#2A2040" BorderThickness="1" Padding="3">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="Mp3Radio" Content="MP3 audio" GroupName="fmt" IsChecked="True"
+                                         Style="{StaticResource FormatRadio}" Checked="Format_Changed"/>
+                            <RadioButton x:Name="Mp4Radio" Content="MP4 video" GroupName="fmt"
+                                         Style="{StaticResource FormatRadio}" Checked="Format_Changed"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
                 <!-- Video preview card -->
-                <Border x:Name="VideoCard" Margin="0,14,0,0" CornerRadius="12" Background="#12161F"
-                        BorderBrush="#222B3A" BorderThickness="1" Padding="10" Visibility="Collapsed">
+                <Border x:Name="VideoCard" Margin="0,14,0,0" CornerRadius="12" Background="#100B1A"
+                        BorderBrush="#271D3F" BorderThickness="1" Padding="10" Visibility="Collapsed">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -237,30 +274,30 @@
                         </Border>
                         <StackPanel Grid.Column="2" VerticalAlignment="Center">
                             <TextBlock x:Name="VideoTitle" Text="" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="#E8ECF3" TextWrapping="Wrap" MaxHeight="38"
+                                       Foreground="#ECE6F6" TextWrapping="Wrap" MaxHeight="38"
                                        TextTrimming="CharacterEllipsis" LineHeight="17"/>
-                            <TextBlock x:Name="VideoAuthor" Text="" FontSize="11.5" Foreground="#8A93A6" Margin="0,4,0,0"/>
+                            <TextBlock x:Name="VideoAuthor" Text="" FontSize="11.5" Foreground="#9A90B0" Margin="0,4,0,0"/>
                         </StackPanel>
                     </Grid>
                 </Border>
 
                 <!-- Actions -->
-                <Button x:Name="ConvertButton" Margin="0,18,0,0" Style="{StaticResource PrimaryButton}"
+                <Button x:Name="ConvertButton" Margin="0,16,0,0" Style="{StaticResource PrimaryButton}"
                         Content="Convert to MP3" Click="Convert_Click"/>
 
                 <Button x:Name="OpenFolderButton" Margin="0,12,0,0" Style="{StaticResource GhostButton}"
                         Content="Show in folder" Visibility="Collapsed" Click="OpenFolder_Click"/>
 
                 <!-- Progress -->
-                <StackPanel x:Name="ProgressSection" Margin="0,18,0,0" Visibility="Collapsed">
+                <StackPanel x:Name="ProgressSection" Margin="0,16,0,0" Visibility="Collapsed">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock x:Name="PhaseText" Grid.Column="0" Text="" FontSize="12.5" Foreground="#8A93A6"/>
+                        <TextBlock x:Name="PhaseText" Grid.Column="0" Text="" FontSize="12.5" Foreground="#9A90B0"/>
                         <TextBlock x:Name="PercentText" Grid.Column="1" Text="" FontSize="12.5"
-                                   FontWeight="SemiBold" Foreground="#E8ECF3"/>
+                                   FontWeight="SemiBold" Foreground="#ECE6F6"/>
                     </Grid>
                     <ProgressBar x:Name="DownloadBar" Margin="0,10,0,0" Height="8" Minimum="0" Maximum="100"
                                  Template="{StaticResource SlickProgressBar}"/>
@@ -269,16 +306,16 @@
                 </StackPanel>
 
                 <!-- Status -->
-                <TextBlock x:Name="StatusText" Margin="0,16,0,0" FontSize="12.5" Foreground="#66708A"
+                <TextBlock x:Name="StatusText" Margin="0,15,0,0" FontSize="12.5" Foreground="#6E6488"
                            TextWrapping="Wrap" Text="Ready. Paste a link or drop one anywhere in this window."/>
 
                 <TextBlock Text="You can also drag a link straight onto the window."
-                           FontSize="11" Foreground="#39415A" Margin="0,8,0,0"/>
+                           FontSize="11" Foreground="#3E3554" Margin="0,8,0,0"/>
             </StackPanel>
 
             <!-- Footer -->
             <TextBlock Grid.Row="2" Text="Converted locally on your machine - nothing leaves your PC."
-                       FontSize="10.5" Foreground="#333C52" HorizontalAlignment="Center" Margin="0,0,0,14"/>
+                       FontSize="10.5" Foreground="#302946" HorizontalAlignment="Center" Margin="0,0,0,14"/>
         </Grid>
     </Border>
 </Window>
