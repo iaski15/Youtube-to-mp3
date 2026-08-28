@@ -1,4 +1,4 @@
-[README.md](https://github.com/user-attachments/files/31573677/README.md)
+[README.md](https://github.com/user-attachments/files/31573930/README.md)
 # YouTube to MP3 & MP4
 
 A small Windows desktop app that turns YouTube links into **MP3** files (or downloads the video as **MP4**) — no browser, no Python setup. Just paste a link and press Enter.
@@ -63,3 +63,4 @@ Tools\yt-dlp.exe          Bundled downloader
 - C# / .NET 10, WPF (custom dark UI, no third-party UI libraries)
 - [NAudio](https://github.com/naudio/NAudio) — Media Foundation MP3 encoding
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) — downloading
+- [ffmpeg](https://ffmpeg.org/) — video merging/remuxing in MP4 mode (bundled alongside yt-dlp)
